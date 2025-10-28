@@ -1,3 +1,14 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for roles/webserver
+- name: Import task install-cert.yml
+  import_tasks: install-cert.yml
+  
+- name: Import task webserver.yml
+  import_tasks: webserver.yml
+
+- name: Import task 10-web-template.yml
+  import_tasks: 10-web-template.yml
+
+- name: Import task 11-Question-A.yml
+  import_tasks: 11-Question-A.yml

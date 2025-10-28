@@ -1,3 +1,11 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for roles/dbserver
+- name: Include vars/vault.yml
+  ansible.builtin.include_vars: vars/vault.yml
+  
+- name: Import task 09-mariadb-password.yml
+  import_tasks: 09-mariadb-password.yml
+
+- name: Import task 11-Question-B.yml
+  import_tasks: 11-Question-B.yml
