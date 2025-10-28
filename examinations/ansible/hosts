@@ -1,0 +1,14 @@
+[all:vars]
+ansible_user=deploy
+ansible_ssh_private_key_file=~/configuration_management/inlämningar/AnsibleFork/lab_environment/deploy_key
+
+[all:children]
+dbserver
+webserver
+
+[dbserver]
+192.168.121.79
+
+[webserver]
+192.168.121.47
+

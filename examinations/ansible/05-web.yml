@@ -1,0 +1,17 @@
+---
+- name: Copy https.conf to webserver
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Copy local https.conf to /etc/nginx/conf.d/https.conf
+      ansible.builtin.copy:
+        src: ~/configuration_management/inlämningar/AnsibleFork/examinations/ansible/files/https.conf
+        dest: /etc/nginx/conf.d/https.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure nginx is restarted
+      ansible.builtin.service:
+       name: nginx
+       state: restarted

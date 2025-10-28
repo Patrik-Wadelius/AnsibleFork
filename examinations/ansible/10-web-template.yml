@@ -1,0 +1,53 @@
+---
+- name: Copy https.conf to webserver
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Create the directory structure
+      ansible.builtin.file:
+        path: /var/www/example.internal/html/
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        recurse: yes
+        setype: httpd_sys_content_t
+
+    - name: Upload files/index.html to /var/www/example.internal/html/index.html    
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /var/www/example.internal/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+        setype: httpd_sys_content_t
+
+    - name: Copy local https.conf to /etc/nginx/conf.d/https.conf
+      ansible.builtin.copy:
+        src: ~/configuration_management/inlämningar/AnsibleFork/examinations/ansible/files/https.conf
+        dest: /etc/nginx/conf.d/https.conf
+        owner: root
+        group: root
+        mode: '0644'
+      register: https_conf_result
+        
+    - name: Deploy nginx conf from template
+      ansible.builtin.template:
+        src: templates/example.internal.conf.j2
+        dest: /etc/nginx/conf.d/example.internal.conf
+        owner: root
+        group: root
+        mode: '0644'
+      register: example_conf_result
+
+    - name: Ensure nginx is restarted if conf is changed
+      ansible.builtin.service:
+       name: nginx
+       state: restarted
+      when: https_conf_result.changed or example_conf_result.changed
+
+    - name: Debug conf change status
+      ansible.builtin.debug:
+        msg: >
+          https.conf changed={{ https_conf_result.changed }},
+          example.internal.conf={{ example_conf_result.changed }}
