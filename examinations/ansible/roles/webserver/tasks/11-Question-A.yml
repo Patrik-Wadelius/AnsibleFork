@@ -3,12 +3,11 @@
 - name: Add users to group
   ansible.builtin.user:
     name: "{{ item.name }}"
-    groups: "{{ item.groups | join(',')}}"
-    append: yes
+    groups: "{{ item.groups | join(',') }}"
+    append: true
     state: present
   loop:
-    - { name: alovelace, groups: ['wheel', 'audio', 'video']}
-    - { name: aturing, groups: ['tape']}
-    - { name: edijskrta, groups: ['tcpdump']}
-    - { name: ghopper, groups: ['audio']}
-
+    - { name: alovelace, groups: ['wheel', 'audio', 'video'] }
+    - { name: aturing, groups: ['tape'] }
+    - { name: edijskrta, groups: ['tcpdump'] }
+    - { name: ghopper, groups: ['audio'] }

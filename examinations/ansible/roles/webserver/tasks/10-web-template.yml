@@ -6,10 +6,10 @@
     owner: root
     group: root
     mode: '0755'
-    recurse: yes
+    recurse: true
     setype: httpd_sys_content_t
 
-- name: Upload files/index.html to /var/www/example.internal/html/index.html    
+- name: Upload files/index.html to /var/www/example.internal/html/index.html
   ansible.builtin.copy:
     src: files/index.html
     dest: /var/www/example.internal/html/index.html
@@ -20,14 +20,14 @@
 
 - name: Copy local https.conf to /etc/nginx/conf.d/https.conf
   ansible.builtin.copy:
-    src: ~/configuration_management/inlämningar/AnsibleFork/examinations/ansible/files/https.conf
+    src: files/https.conf
     dest: /etc/nginx/conf.d/https.conf
     owner: root
     group: root
     mode: '0644'
   register: https_conf_result
   notify: Reload nginx
-        
+
 - name: Deploy nginx conf from template
   ansible.builtin.template:
     src: templates/example.internal.conf.j2
