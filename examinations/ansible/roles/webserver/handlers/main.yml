@@ -1,21 +1,8 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # handlers file for roles/webserver
+
 - name: Reload nginx
-  block:
-    - name: Validate nginx configuration
-      ansible.builtin.command: nginx -t
-      register: nginx_test
-      ignore_errors: true
-
-    - name: Fail if nginx configuration is invalid
-      ansible.builtin.fail:
-        msg: "Nginx configuration is invalid: {{ nginx_test.stderr }}"
-      when: nginx_test.rc != 0
-
-    - name: Reload nginx
-      ansible.builtin.service:
-        name: nginx
-        state: reloaded
-      when: nginx_test.rc == 0
-
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
