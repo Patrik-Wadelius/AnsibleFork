@@ -1,0 +1,104 @@
+---
+- name: 10 CIS Security benchmarks
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: SSHD config checks
+      ansible.builtin.slurp:
+        path: /etc/ssh/sshd_config
+      register: sshd_conf_raw
+
+    - name: Decode ssh conf file
+      ansible.builtin.set_fact:
+        sshd_conf: "{{ sshd_conf_raw.content | b64decode }}"
+
+    - name: 1 Check root account is locked
+      ansible.builtin.command:
+        cmd: passwd -S root
+      register: root_passwd
+      changed_when: false
+    - name: Assert root account is locked
+      ansible.builtin.assert:
+        that:
+          - "'L' in root_passwd.stdout"
+        success_msg: "Root account is locked for remote login"
+        fail_msg: "Root account is not locked"
+
+    - name: 2. Ensure PermitRootLogin disabled
+      ansible.builtin.assert:
+        that:
+          - sshd_conf is not search('\\s*PermitRootLogin\\s+yes', multiline=True)
+        success_msg: "PermitRootLogin disableb"
+        fail_msg: "PermitRootLogin not disabled"
+
+    - name: 3. Ensure EmptyPasswords disabled
+      ansible.builtin.assert:
+        that:
+          - sshd_conf is search('\\s*PermitEmptyPasswords\\s+no', multiline=True)
+        success_msg: "PermitEmptyPasswords disableb"
+        fail_msg: "PermitEmptyPasswords not disabled"
+
+    - name: 4. Ensure telnet-server is not installed
+      ansible.builtin.assert:
+        that: "'telnet-server' not in ansible_facts.packages"
+        success_msg: "Telnet-server is not installed"
+        fail_msg: "Telnet-server is installed"
+
+    - name: 5. Ensure RSH-server is not installed
+      ansible.builtin.assert:
+        that: "'rsh-server' not in ansible_facts.packages"
+        success_msg: "RSH-server not installed"
+        fail_msg: "RSH-server is installed"
+
+    - name: 6. Ensure xinetd is not installed
+      ansible.builtin.assert:
+        that:
+          - "'xinetd' not in ansible_facts.packages"
+        success_msg: "Xinetd not installed"
+        fail_msg: "Xinetd is installed"
+
+    - name: 7. Check ipv4 forwarding
+      ansible.builtin.command: sysctl -n net.ipv4.ip_forward
+      register: ip_forwarding_status
+      changed_when: false
+    - name: Assert ipv4 is disabled
+      ansible.builtin.assert:
+        that:
+          - ip_forwarding_status.stdout == '0'
+        success_msg: "Ipv4 forwarding is disableb"
+        fail_msg: "Ipv4 forwarding is not disableb"
+
+    - name: 8. Ensure password max days is 90 or less
+      ansible.builtin.command:
+        cmd: "grep -E '^PASS_MAX_DAYS' /etc/login.defs"
+      register: pass_max_days
+      changed_when: false
+
+    - name: Assert password max days is 90 or less
+      ansible.builtin.assert:
+        that:
+          - pass_max_days.stdout is search('PASS_MAX_DAYS\s+([0-9]{1,2}|90)')
+        success_msg: "Password maximum age is 90 days or less"
+        fail_msg: "Password maximum age is more than 90 days"
+
+    - name: 9 Ensure SSH X11 forwarding is disabled
+      ansible.builtin.assert:
+        that:
+          - sshd_conf is search('\\s*X11Forwarding\\s+no', multiline=True)
+        success_msg: "SSH X11 forwarding disabled"
+        fail_msg: "SSH X11 forwarding enabled"
+
+    - name: 10 Assert Bluetooth packages are not installed
+      ansible.builtin.assert:
+        that:
+          - "'bluez' not in ansible_facts.packages"
+          - "'bluetooth' not in ansible_facts.packages"
+        success_msg: "Bluetooth services are not installed"
+        fail_msg: "Bluetooth services are installed"
